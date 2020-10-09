@@ -1,0 +1,33 @@
+@using TCAdmin.GameHosting.SDK.Objects
+@using TCAdmin.Interfaces.Server
+@using TCAdmin.TaskScheduler.ModuleApi
+@using TCAdmin.TaskScheduler.SDK.Objects
+
+@{
+    var service = TCAdmin.GameHosting.SDK.Objects.Service.GetSelectedService();
+    if (service.CustomFields["__TCA:PROCESSING"] != null && (bool)service.CustomFields["__TCA:PROCESSING"])
+    {
+        if (service.CustomFields["__TCA:CURRENT_TASK_ID"] != null && (int)service.CustomFields["__TCA:CURRENT_TASK_ID"] > 0)
+        {
+            var taskid = (int)service.CustomFields["__TCA:CURRENT_TASK_ID"];
+            var currenttask = new TCAdmin.TaskScheduler.SDK.Objects.Task();
+            currenttask.TaskId = taskid;
+            try
+            {
+                TCAdmin.SDK.Objects.ObjectBase.GlobalSkipSecurityCheck = true;
+                if (currenttask.Find() && currenttask.Status == TaskStatus.Executing)
+                {
+<script>
+    $(document).ready(function () {
+        TCAdmin.Ajax.ShowTaskDialog("@Url.Content(string.Format("~/TaskStatusPopup?taskid={0}", currenttask.TaskId))");
+        })
+</script>
+                }
+            }
+            finally
+            {
+                TCAdmin.SDK.Objects.ObjectBase.GlobalSkipSecurityCheck = false;
+            }
+        }
+    }
+}
